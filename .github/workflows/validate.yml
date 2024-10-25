@@ -1,0 +1,11 @@
+name: Validate Containers
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  validate-containers:
+    runs-on: ubuntu-latest
+    steps:
+      - name: validate-step
+        run: echo "This is supposed to do stuff."
