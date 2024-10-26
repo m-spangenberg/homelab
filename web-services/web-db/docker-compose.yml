@@ -1,0 +1,36 @@
+# Database Pod (PostgreSQL) Docker Compose File
+# Includes PostgreSQL
+services:
+  postgres:
+    image: docker.io/postgres/postgres:latest
+    container_name: postgres
+    volumes:
+      - ./postgres/postgres.json:/etc/postgres/postgres.json
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    command: run --config /etc/postgres/postgres.json
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "2048M"
+        reservations:
+          cpus: "0.25"
+          memory: "512M"
+    networks:
+      homelab-net:
+        aliases:
+          - database
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres-data:
+    external: true
+
+networks:
+  homelab-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: "10.10.10.0/24"

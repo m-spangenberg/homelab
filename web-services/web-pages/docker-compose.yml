@@ -1,0 +1,83 @@
+# Web Pages Pod (Nginx) Docker Compose File
+# Includes Main Web Site, Blog, and Status Page
+services:
+  nginx-site:
+    image: docker.io/nginx/nginx:latest
+    container_name: nginx-site
+    volumes:
+      - ./nginx-site/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx-site/www:/usr/share/nginx/html:ro
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "128M"
+        reservations:
+          cpus: "0.25"
+          memory: "64M"
+    networks:
+      homelab-net:
+        aliases:
+          - nginx-site
+    ports:
+      - "8080:80"
+
+  nginx-blog:
+    image: docker.io/nginx:latest
+    container_name: nginx-blog
+    volumes:
+      - ./nginx-blog/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx-blog/www:/usr/share/nginx/html:ro
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "128M"
+        reservations:
+          cpus: "0.25"
+          memory: "64M"
+    networks:
+      homelab-net:
+        aliases:
+          - nginx-blog
+    ports:
+      - "8081:80"
+
+  nginx-status:
+    image: docker.io/nginx:latest
+    container_name: nginx-status
+    volumes:
+      - ./nginx-status/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx-status/www:/usr/share/nginx/html:ro
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "128M"
+        reservations:
+          cpus: "0.25"
+          memory: "64M"
+    networks:
+      homelab-net:
+        aliases:
+          - nginx-status
+    ports:
+      - "8082:80"
+
+volumes:
+  nginx-site:
+    external: true
+  nginx-blog:
+    external: true
+  nginx-status:
+    external: true
+
+networks:
+  homelab-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: "10.10.10.0/24"

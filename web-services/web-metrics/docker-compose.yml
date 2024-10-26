@@ -1,0 +1,59 @@
+# Metrics Pod (Grafana/Prometheus) Docker Compose File
+# Includes Prometheus and Grafana
+services:
+  grafana:
+    image: docker.io/grafana/grafana-oss:latest
+    container_name: grafana
+    volumes:
+      - ./grafana/grafana.ini:/etc/grafana/grafana.ini
+      - grafana-data:/var/lib/grafana
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "512M"
+        reservations:
+          cpus: "0.25"
+          memory: "256M"
+    networks:
+      homelab-net:
+        aliases:
+          - grafana
+    ports:
+      - "3000:3000"
+
+  prometheus:
+    image: docker.io/prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/etc/prometheus
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "512M"
+        reservations:
+          cpus: "0.25"
+          memory: "256M"
+    networks:
+      homelab-net:
+        aliases:
+          - prometheus
+    ports:
+      - "9090:9090"
+
+volumes:
+  grafana-data:
+    external: true
+  prometheus-data:
+    external: true
+
+networks:
+  homelab-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: "10.10.10.0/24"

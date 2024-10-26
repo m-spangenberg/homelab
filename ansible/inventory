@@ -1,0 +1,27 @@
+[e1]
+# Production Server
+e1 ansible_host=192.168.1.xxx ansible_user=root
+
+[e2]
+# Development Server
+e2 ansible_host=192.168.1.xxx ansible_user=root
+
+[e3]
+# Testing Server
+e3 ansible_host=192.168.1.xxx ansible_user=root
+
+[e4]
+# Storage Server
+e4 ansible_host=192.168.1.xxx ansible_user=root
+
+[e5]
+# Raspberry Pi 1B+
+e5 ansible_host=192.168.1.xxx ansible_user=root
+
+[e6]
+# Raspberry Pi 1B+
+e6 ansible_host=192.168.1.xxx ansible_user=root
+
+[e7]
+# Raspberry Pi 3B+
+e7 ansible_host=192.168.1.xxx ansible_user=root

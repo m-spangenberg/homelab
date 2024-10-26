@@ -1,0 +1,19 @@
+
+
+  # Woodpecker CI/CD Pod
+  woodpecker-server:
+    image: woodpecker-server:latest
+    container_name: woodpecker-server
+    networks:
+      homelab-net:
+        aliases:
+          - woodpecker-server
+    ports:
+      - "8086:80"
+  woodpecker-agent-1:
+    image: woodpecker-agent:latest
+    container_name: woodpecker-agent-1
+    networks:
+      homelab-net
+    depends_on:
+      - woodpecker-server

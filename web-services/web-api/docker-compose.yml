@@ -1,0 +1,103 @@
+# API Gateway Pod (Krakend) Docker Compose File
+# Includes Krakend, Garage, RabbitMQ, and Valkey
+services:
+  krakend:
+    image: docker.io/devopsfaith/krakend:latest
+    container_name: krakend
+    volumes:
+      - ./krakend/krakend.json:/etc/krakend/krakend.json
+      - krakend-data:/etc/krakend
+    restart: unless-stopped
+    command: run --config /etc/krakend/krakend.json
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "512M"
+        reservations:
+          cpus: "0.25"
+          memory: "256M"
+    networks:
+      homelab-net:
+        aliases:
+          - krakend
+    ports:
+      - "8083:8080"
+
+  garage:
+    image: docker.io/dxflrs/garage:v1.0.0
+    container_name: garage
+    volumes:
+      - ./garage/garage.toml:/etc/garage.toml
+      - garage-data:/var/lib/garage/meta
+      - garage-data:/var/lib/garage/data
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "512M"
+        reservations:
+          cpus: "0.25"
+          memory: "256M"
+    networks:
+      homelab-net:
+        aliases:
+          - garage
+
+  rabbitmq:
+    image: docker.io/rabbitmq/rabbitmq:4.0-management
+    container_name: rabbitmq
+    volumes:
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
+      - rabbitmq-data:/var/lib/rabbitmq
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "256M"
+        reservations:
+          cpus: "0.25"
+          memory: "128M"
+    networks:
+      homelab-net:
+        aliases:
+          - rabbitmq
+
+  valkey:
+    image: docker.io/valkey/valkey:latest
+    container_name: valkey
+    volumes:
+      - ./valkey/valkey.conf:/usr/local/etc/valkey/valkey.conf
+      - valkey-data:/data/
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "256M"
+        reservations:
+          cpus: "0.25"
+          memory: "128M"
+    networks:
+      homelab-net:
+        aliases:
+          - valkey
+
+volumes:
+  krakend-data:
+    external: true
+  garage-data:
+    external: true
+  rabbitmq-data:
+    external: true
+  valkey-data:
+    external: true
+
+networks:
+  homelab-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: "10.10.10.0/24"

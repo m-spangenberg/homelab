@@ -1,0 +1,20 @@
+---
+# ansible-playbook -i ansible/inventory maintenance.yml --tags reboot --limit e1
+- hosts: all
+  become: yes
+  tasks:
+    - name: Reboot the system
+      reboot:
+        reboot_timeout: 600
+        test_command: uptime
+      tags: reboot
+
+    - name: Update package cache
+      apt:
+        update_cache: yes
+      tags: update
+      
+    - name: Upgrade all packages
+      apt:
+        upgrade: yes
+      tags: upgrade

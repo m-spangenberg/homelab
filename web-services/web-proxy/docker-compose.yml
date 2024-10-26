@@ -1,0 +1,27 @@
+# Cloudflared Pod (Cloudflared) Docker Compose File
+# Includes Cloudflared
+services:
+  cloudflared:
+    image: docker.io/cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TOKEN}
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "128M"
+        reservations:
+          cpus: "0.25"
+          memory: "64M"
+    networks:
+      homelab-net:
+        aliases:
+          - cloudflared
+
+networks:
+  homelab-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: "10.10.10.0/24"

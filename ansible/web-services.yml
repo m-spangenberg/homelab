@@ -1,0 +1,70 @@
+---
+- name: Setup server
+  hosts: e1
+  become: true
+
+  pre_tasks:
+    # Do not allow empty directories for web-pages
+    - name: Check if blog is empty
+      stat:
+        path: /opt/homelab/web-services/web-pages/nginx-blog/www
+      register: nginx_blog_www
+      tags: web-pages
+
+    - name: Check if status is empty
+      stat:
+        path: /opt/homelab/web-services/web-pages/nginx-status/www
+      register: nginx_status_www
+      tags: web-pages
+
+    - name: Check if status is empty
+      stat:
+        path: /opt/homelab/web-services/web-pages/nginx-site/www
+      register: nginx_site_www
+      tags: web-pages
+
+    - name: Fail if any directory is empty
+      fail:
+        msg: "One or more required directories are empty. Please populate them before proceeding."
+      when: 
+        - nginx_blog_www.stat.exists and nginx_blog_www.stat.isdir and nginx_blog_www.stat.size == 0
+        - nginx_status_www.stat.exists and nginx_status_www.stat.isdir and nginx_status_www.stat.size == 0
+        - nginx_site_www.stat.exists and nginx_site_www.stat.isdir and nginx_site_www.stat.size == 0
+      tags: web-pages
+
+  tasks:
+    - name: Start all Pods
+      command: bash /opt/homelab/web-services/install.sh
+      tags: install
+
+    - name: Start web-api
+      command: podman-compose -f /opt/homelab/web-services/web-api/docker-compose.yml up -d
+      tags: web-api
+
+    - name: Start web-portal
+      command: podman-compose -f /opt/homelab/web-services/web-portal/docker-compose.yml up -d
+      tags: web-portal
+
+    - name: Start web-ci
+      command: podman-compose -f /opt/homelab/web-services/web-ci/docker-compose.yml up -d
+      tags: web-ci
+
+    - name: Start web-db
+      command: podman-compose -f /opt/homelab/web-services/web-db/docker-compose.yml up -d
+      tags: web-db
+
+    - name: Start web-git
+      command: podman-compose -f /opt/homelab/web-services/web-git/docker-compose.yml up -d
+      tags: web-git
+
+    - name: Start web-metrics
+      command: podman-compose -f /opt/homelab/web-services/web-metrics/docker-compose.yml up -d
+      tags: web-metrics
+
+    - name: Start web-pages
+      command: podman-compose -f /opt/homelab/web-services/web-pages/docker-compose.yml up -d
+      tags: web-pages
+
+    - name: Start web-proxy
+      command: podman-compose -f /opt/homelab/web-services/web-proxy/docker-compose.yml up -d
+      tags: web-proxy
