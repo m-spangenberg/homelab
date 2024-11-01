@@ -1,4 +1,5 @@
 ---
+# ansible-playbook -i ansible/inventory ansible/web-services.yml --tags reboot --limit e1
 - name: Setup server
   hosts: e1
   become: true

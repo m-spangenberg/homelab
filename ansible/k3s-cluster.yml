@@ -1,0 +1,47 @@
+---
+# ansible-playbook -i ansible/inventory ansible/k3s-cluster.yml --tags  --limit
+
+- name: Setup K3S cluster
+  hosts: e1
+  become: true
+  
+  tasks: 
+    - name: Install K3S server
+      shell: curl -sfL https://get.k3s.io | sh -
+      args:
+        creates: /usr/local/bin/k3s
+
+    - name: Get K3S token
+      shell: cat /var/lib/rancher/k3s/server/node-token
+      register: k3s_token
+
+    - name: Get server IP
+      shell: hostname -I | awk '{print $1}'
+      register: server_ip
+
+    - name: Set facts for K3S token and server IP
+      set_fact:
+        k3s_token: "{{ k3s_token.stdout }}"
+        server_ip: "{{ server_ip.stdout }}"
+
+- name: Setup K3S agent node
+  hosts: e2
+  become: true
+  vars:
+    k3s_token: "{{ hostvars['e1']['k3s_token'] }}"
+    server_ip: "{{ hostvars['e1']['server_ip'] }}"
+
+  tasks:
+    - name: Install K3S agent
+      shell: curl -sfL https://get.k3s.io | K3S_URL=https://{{ server_ip }}:6443 K3S_TOKEN={{ k3s_token }} sh -
+
+- name: Setup K3S agent node
+  hosts: e3
+  become: true
+  vars:
+    k3s_token: "{{ hostvars['e1']['k3s_token'] }}"
+    server_ip: "{{ hostvars['e1']['server_ip'] }}"
+
+  tasks:
+    - name: Install K3S agent
+      shell: curl -sfL https://get.k3s.io | K3S_URL=https://{{ server_ip }}:6443 K3S_TOKEN={{ k3s_token }} sh -

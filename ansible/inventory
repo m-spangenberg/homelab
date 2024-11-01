@@ -1,13 +1,16 @@
 [e1]
 # Production Server
+# Kubernetes Master
 e1 ansible_host=192.168.1.xxx ansible_user=root
 
 [e2]
 # Development Server
+# Kubernetes Worker
 e2 ansible_host=192.168.1.xxx ansible_user=root
 
 [e3]
 # Testing Server
+# Kubernetes Worker
 e3 ansible_host=192.168.1.xxx ansible_user=root
 
 [e4]
@@ -25,3 +28,9 @@ e6 ansible_host=192.168.1.xxx ansible_user=root
 [e7]
 # Raspberry Pi 3B+
 e7 ansible_host=192.168.1.xxx ansible_user=root
+
+[k3s]
+# Kubernetes Cluster
+e1 ansible_host=192.168.1.xxx ansible_user=root
+e2 ansible_host=192.168.1.xxx ansible_user=root
+e3 ansible_host=192.168.1.xxx ansible_user=root

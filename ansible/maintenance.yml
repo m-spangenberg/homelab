@@ -1,5 +1,5 @@
 ---
-# ansible-playbook -i ansible/inventory maintenance.yml --tags reboot --limit e1
+# ansible-playbook -i ansible/inventory ansible/maintenance.yml --tags reboot --limit e1
 - hosts: all
   become: yes
   tasks:
