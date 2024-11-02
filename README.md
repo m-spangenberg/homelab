@@ -19,8 +19,7 @@ I make use of Ansible, Shell Scripts, and Podman to automate deployment of servi
 
 The `web-services` directory contains a collection of services that I run out of my homelab. Each service is a subdirectory that contains a `docker-compose.yml` file and any other necessary configuration files. These services can be deployed using ansible or a one-liner.
 
-You're going to want to create the network first:
-`network create --driver bridge --subnet 10.10.10.0/24 homelab-net`
+You will need to set your environment by copying the `.env.example` file to `.env` and updating the variables to match your environment then running `source .env` in the root of the repository. You can use `getenv` couple with a vairable name to get the value of a variable from the `.env` file to check that things are set correctly.
 
 ```bash
 # Example: deploy all web services to a specific host

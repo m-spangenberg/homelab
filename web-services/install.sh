@@ -14,6 +14,10 @@ sudo systemctl restart ssh
 echo "Satisfying Dependencies..."
 sudo apt install -y ansible podman podman-compose curl
 
+# Create network
+echo "Creating Network..."
+podman network create --driver bridge --subnet 10.10.10.0/24 homelab-net
+
 # Setup blank screen when idle
 echo "Performing Tweaks..."
 sudo sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="quiet"/GRUB_CMDLINE_LINUX_DEFAULT="quiet consoleblank=60"/' /etc/default/grub
