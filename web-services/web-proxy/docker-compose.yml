@@ -8,6 +8,8 @@ services:
     command: tunnel --no-autoupdate run
     environment:
       - TUNNEL_TOKEN=${CLOUDFLARE_TOKEN}
+      - TUNNEL_ID=${CLOUDFLARE_TUNNEL_ID}
+      - TUNNEL_NAME=${CLOUDFLARE_TUNNEL_NAME}
     deploy:
       resources:
         limits:
