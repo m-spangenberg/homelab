@@ -2,9 +2,15 @@
 
 set -e
 
+echo "Initializing PostgreSQL..."
+
 # Wait for PostgreSQL to be ready
 until pg_isready -h localhost -U ${POSTGRES_USER} -p 5432; do
   case $? in
+    0)
+      echo "PostgreSQL is ready to accept connections."
+      break
+      ;;
     1)
       echo "PostgreSQL is rejecting connections. Waiting..."
       ;;
