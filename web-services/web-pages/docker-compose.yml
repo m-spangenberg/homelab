@@ -77,7 +77,4 @@ volumes:
 
 networks:
   homelab-net:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: "10.10.10.0/24"
+    external: true
