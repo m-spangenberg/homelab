@@ -16,7 +16,7 @@ services:
           cpus: "0.5"
           memory: "128M"
         reservations:
-          cpus: "0.25"
+          cpus: "0.10"
           memory: "64M"
     networks:
       homelab-net:
