@@ -2,11 +2,14 @@
 # Includes Main Web Site, Blog, and Status Page
 services:
   nginx-site:
-    image: docker.io/nginx:latest
+    # image: docker.io/nginx:latest
+    build: .
     container_name: nginx-site
     volumes:
       - ./nginx-site/nginx.conf:/etc/nginx/nginx.conf
       - ./nginx-site/www:/usr/share/nginx/html:ro
+      - ./entrypoint.sh:/entrypoint.sh
+    entrypoint: ["/entrypoint.sh"]
     restart: unless-stopped
     deploy:
       resources:
@@ -24,11 +27,14 @@ services:
       - "8080:80"
 
   nginx-blog:
-    image: docker.io/nginx:latest
+    # image: docker.io/nginx:latest
+    build: .
     container_name: nginx-blog
     volumes:
       - ./nginx-blog/nginx.conf:/etc/nginx/nginx.conf
       - ./nginx-blog/www:/usr/share/nginx/html:ro
+      - ./entrypoint.sh:/entrypoint.sh
+    entrypoint: ["/entrypoint.sh"]
     restart: unless-stopped
     deploy:
       resources:
@@ -46,11 +52,14 @@ services:
       - "8081:80"
 
   nginx-status:
-    image: docker.io/nginx:latest
+    # image: docker.io/nginx:latest
+    build: .
     container_name: nginx-status
     volumes:
       - ./nginx-status/nginx.conf:/etc/nginx/nginx.conf
       - ./nginx-status/www:/usr/share/nginx/html:ro
+      - ./entrypoint.sh:/entrypoint.sh
+    entrypoint: ["/entrypoint.sh"]
     restart: unless-stopped
     deploy:
       resources:
