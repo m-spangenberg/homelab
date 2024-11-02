@@ -3,7 +3,7 @@
 set -e
 
 # Wait for PostgreSQL to be ready
-until pg_isready -h localhost -p 5432; do
+until psql -h "localhost" -U "postgres" -c '\q'; do
   echo "Waiting for PostgreSQL to be ready..."
   sleep 2
 done
