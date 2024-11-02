@@ -5,7 +5,7 @@ services:
     image: docker.io/cloudflare/cloudflared:latest
     container_name: cloudflared
     restart: unless-stopped
-    command: tunnel run
+    command: tunnel --no-autoupdate run
     environment:
       - TUNNEL_TOKEN=${CLOUDFLARE_TOKEN}
     deploy:
