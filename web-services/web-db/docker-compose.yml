@@ -2,7 +2,7 @@
 # Includes PostgreSQL
 services:
   postgres:
-    image: docker.io/postgres/postgres:latest
+    image: docker.io/postgres:latest
     container_name: postgres
     volumes:
       - ./postgres/postgres.json:/etc/postgres/postgres.json
