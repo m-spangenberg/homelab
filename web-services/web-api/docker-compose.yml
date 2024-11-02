@@ -87,13 +87,9 @@ services:
 
 volumes:
   krakend-data:
-    external: true
   garage-data:
-    external: true
   rabbitmq-data:
-    external: true
   valkey-data:
-    external: true
 
 networks:
   homelab-net:

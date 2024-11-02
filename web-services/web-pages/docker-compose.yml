@@ -72,11 +72,8 @@ services:
 
 volumes:
   nginx-site:
-    external: true
   nginx-blog:
-    external: true
   nginx-status:
-    external: true
 
 networks:
   homelab-net:

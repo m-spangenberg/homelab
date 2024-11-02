@@ -61,7 +61,6 @@ services:
 
 volumes:
   woodpecker-server-data:
-    external: true
 
 networks:
   homelab-net:

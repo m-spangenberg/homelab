@@ -55,7 +55,6 @@ services:
 
 volumes:
   gitea-data:
-    external: true
 
 networks:
   homelab-net:

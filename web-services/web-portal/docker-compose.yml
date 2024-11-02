@@ -43,31 +43,9 @@ services:
         aliases:
           - portal
 
-  redis:
-    image: docker.io/redis/redis:latest
-    container_name: redis
-    restart: unless-stopped
-    volumes:
-      - redis-data:/data
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: "256M"
-        reservations:
-          cpus: "0.25"
-          memory: "64M"
-    networks:
-      homelab-net:
-        aliases:
-          - redis
-
 volumes:
   portal-data:
-    external: true
-  redis-data:
-    external: true
-
+  
 networks:
   homelab-net:
     external: true
