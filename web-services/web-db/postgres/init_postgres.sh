@@ -2,22 +2,22 @@
 
 set -e
 
-echo "Initializing PostgreSQL..."
+echo "Initializing Service Databases..."
 
 # Create gitea user and database
-psql -v ON_ERROR_STOP=1 --username "postgres" <<-EOSQL
-  CREATE USER gitea WITH PASSWORD '${GITEA_DB_PASSWORD}';
-  CREATE DATABASE gitea OWNER gitea;
-  GRANT ALL PRIVILEGES ON DATABASE gitea TO gitea;
+psql -v ON_ERROR_STOP=1 --username "${POSTGRES_USER}" -h postgres <<-EOSQL
+  CREATE USER ${GITEA_DB_USER} WITH PASSWORD '${GITEA_DB_PASSWORD}';
+  CREATE DATABASE ${GITEA_DB_NAME} OWNER ${GITEA_DB_USER};
+  GRANT ALL PRIVILEGES ON DATABASE ${GITEA_DB_NAME} TO ${GITEA_DB_USER};
 EOSQL
 
 echo "gitea user and database created successfully."
 
 # Create woodpecker user and database
-psql -v ON_ERROR_STOP=1 --username "postgres" <<-EOSQL
-  CREATE USER woodpecker WITH PASSWORD '${WOODPECKER_DB_PASSWORD}';
-  CREATE DATABASE woodpecker OWNER woodpecker;
-  GRANT ALL PRIVILEGES ON DATABASE woodpecker TO woodpecker;
+psql -v ON_ERROR_STOP=1 --username "${POSTGRES_USER}" -h postgres <<-EOSQL
+  CREATE USER ${WOODPECKER_DB_USER} WITH PASSWORD '${WOODPECKER_DB_PASSWORD}';
+  CREATE DATABASE ${WOODPECKER_DB_NAME} OWNER ${WOODPECKER_DB_USER};
+  GRANT ALL PRIVILEGES ON DATABASE ${WOODPECKER_DB_NAME} TO ${WOODPECKER_DB_USER};
 EOSQL
 
 echo "woodpecker user and database created successfully."
