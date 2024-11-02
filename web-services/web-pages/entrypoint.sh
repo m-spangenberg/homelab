@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # PERFORM LOGROTATE CONFIGURATION
 # Limits the size of the log files to 1MB and keeps only 20 backups
