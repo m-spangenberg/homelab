@@ -2,7 +2,7 @@
 # Includes Main Web Site, Blog, and Status Page
 services:
   nginx-site:
-    image: docker.io/nginx/nginx:latest
+    image: docker.io/nginx:latest
     container_name: nginx-site
     volumes:
       - ./nginx-site/nginx.conf:/etc/nginx/nginx.conf
@@ -24,7 +24,7 @@ services:
       - "8080:80"
 
   nginx-blog:
-    image: docker.io/nginx/nginx:latest
+    image: docker.io/nginx:latest
     container_name: nginx-blog
     volumes:
       - ./nginx-blog/nginx.conf:/etc/nginx/nginx.conf
@@ -46,7 +46,7 @@ services:
       - "8081:80"
 
   nginx-status:
-    image: docker.io/nginx/nginx:latest
+    image: docker.io/nginx:latest
     container_name: nginx-status
     volumes:
       - ./nginx-status/nginx.conf:/etc/nginx/nginx.conf
