@@ -26,6 +26,10 @@ services:
   prometheus:
     image: docker.io/prom/prometheus:latest
     container_name: prometheus
+    environment:
+      MY_SERVICE_JOBNAME: ${MY_SERVICE_JOBNAME}
+      MY_SERVICE_HOST: ${MY_SERVICE_HOST}
+      MY_SERVICE_PASSWORD: ${MY_SERVICE_PASSWORD}
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus-data:/etc/prometheus
