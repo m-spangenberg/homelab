@@ -3,8 +3,8 @@
 services:
   nginx-backend:
     build:
-      context: ./nginx-backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: Dockerfile.nginx
     container_name: nginx-backend
     restart: unless-stopped
     volumes:
@@ -27,7 +27,9 @@ services:
       - backend
 
   backend:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
     container_name: backend
     restart: unless-stopped
     volumes:
