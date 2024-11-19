@@ -12,12 +12,16 @@ RUN apk add --no-cache \
 ADD https://github.com/pocketbase/pocketbase/releases/download/v${PB_VERSION}/pocketbase_${PB_VERSION}_linux_amd64.zip /tmp/pb.zip
 RUN unzip /tmp/pb.zip -d /pb/
 
-ENV DATA_DIR=/app/data/pb_data
-ENV PUBLIC_DIR=/app/data/pb_public
-ENV PORT=8888
+# create the data directories
+RUN mkdir -p /pb_data
+RUN mkdir -p /pb_public
+
+# set the environment variables
+ENV DATA_DIR=/pb_data
+ENV PUBLIC_DIR=/pb_public
 
 
-EXPOSE ${PORT}
+EXPOSE 8090
 
 # start PocketBase
-CMD ["/pb/pocketbase", "serve", "--http=0.0.0.0:${PORT} --dir=${DATA_DIR} --publicDir=${PUBLIC_DIR}"]
+CMD ["/pb/pocketbase", "serve", "--http=0.0.0.0:8090 --dir=${DATA_DIR} --publicDir=${PUBLIC_DIR}"]
