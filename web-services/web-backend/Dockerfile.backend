@@ -1,4 +1,6 @@
-FROM alpine:latest
+# BUILD POCKETBASE DOCKER IMAGE
+
+FROM docker.io/alpine:latest
 
 ARG PB_VERSION=0.22.27
 
