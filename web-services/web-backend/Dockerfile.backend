@@ -24,4 +24,4 @@ ENV PUBLIC_DIR=/pb_public
 EXPOSE 8090
 
 # start PocketBase
-CMD ["/pb/pocketbase", "serve", "--http=0.0.0.0:8090 --dir=${DATA_DIR} --publicDir=${PUBLIC_DIR}"]
+CMD ["/pb/pocketbase", "serve", "--http=0.0.0.0:8090"]
