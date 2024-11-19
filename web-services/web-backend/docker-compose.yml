@@ -22,7 +22,7 @@ services:
         aliases:
           - nginx-backend
     ports:
-      - "8888:80"
+      - "8090:80"
     depends_on:
       - backend
 
