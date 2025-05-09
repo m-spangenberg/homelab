@@ -1,5 +1,3 @@
-# Metrics Pod (Grafana/Prometheus) Docker Compose File
-# Includes Prometheus and Grafana
 services:
   grafana:
     image: docker.io/grafana/grafana-oss:latest

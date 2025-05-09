@@ -32,4 +32,4 @@ cd homelab
 echo "Source Environment Variables..."
 source .env
 # Execute setup.sh
-bash web-services/setup.sh
+bash dev-services/setup.sh

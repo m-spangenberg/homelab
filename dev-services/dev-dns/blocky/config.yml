@@ -1,0 +1,34 @@
+upstream:
+  default:
+    - 8.8.8.8
+    - 8.8.4.4
+    - 1.1.1.1
+    - 1.0.0.1
+
+blocking:
+  blackLists:
+    ads:
+      - https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+    clientGroupsBlock:
+      default:
+        - ads
+  blockType: zeroIp
+  blockTTL: 1m
+  refreshPeriod: 4h
+  downloadTimeout: 5m
+  downloadAttempts: 5
+  downloadCooldown: 1s
+
+caching:
+  minTime: 1m
+  maxTime: 30m
+  maxItemsCount: 10000
+
+minTlsServeVersion: 1.3
+bootstrapDns:
+  - tcp+udp:1.1.1.1
+  - https://1.1.1.1/dns-query
+
+ports:
+  dns: 53
+  tls: 853

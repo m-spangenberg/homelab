@@ -1,5 +1,3 @@
-# Web Pages Pod (Nginx) Docker Compose File
-# Includes Main Web Site, Blog, and Status Page
 services:
   nginx-site:
     # image: docker.io/nginx:latest

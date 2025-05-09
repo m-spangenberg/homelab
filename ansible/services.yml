@@ -1,0 +1,71 @@
+---
+# ansible-playbook -i ansible/inventory ansible/dev-services.yml --tags reboot --limit e1
+- name: Setup server
+  hosts: e1
+  become: true
+
+  pre_tasks:
+    # Do not allow empty directories for dev-pages
+    - name: Check if blog is empty
+      stat:
+        path: /opt/homelab/dev-services/dev-pages/nginx-blog/www
+      register: nginx_blog_www
+      tags: dev-pages
+
+    - name: Check if status is empty
+      stat:
+        path: /opt/homelab/dev-services/dev-pages/nginx-status/www
+      register: nginx_status_www
+      tags: dev-pages
+
+    - name: Check if status is empty
+      stat:
+        path: /opt/homelab/dev-services/dev-pages/nginx-site/www
+      register: nginx_site_www
+      tags: dev-pages
+
+    - name: Fail if any directory is empty
+      fail:
+        msg: "One or more required directories are empty. Please populate them before proceeding."
+      when: 
+        - nginx_blog_www.stat.exists and nginx_blog_www.stat.isdir and nginx_blog_www.stat.size == 0
+        - nginx_status_www.stat.exists and nginx_status_www.stat.isdir and nginx_status_www.stat.size == 0
+        - nginx_site_www.stat.exists and nginx_site_www.stat.isdir and nginx_site_www.stat.size == 0
+      tags: dev-pages
+
+  tasks:
+    - name: Start all Pods
+      command: bash /opt/homelab/dev-services/install.sh
+      tags: install
+
+    - name: Start dev-api
+      command: podman-compose -f /opt/homelab/dev-services/dev-api/docker-compose.yml up -d
+      tags: dev-api
+
+    - name: Start dev-portal
+      command: podman-compose -f /opt/homelab/dev-services/dev-portal/docker-compose.yml up -d
+      tags: dev-portal
+
+    - name: Start dev-ci
+      command: podman-compose -f /opt/homelab/dev-services/dev-ci/docker-compose.yml up -d
+      tags: dev-ci
+
+    - name: Start dev-db
+      command: podman-compose -f /opt/homelab/dev-services/dev-db/docker-compose.yml up -d
+      tags: dev-db
+
+    - name: Start dev-git
+      command: podman-compose -f /opt/homelab/dev-services/dev-git/docker-compose.yml up -d
+      tags: dev-git
+
+    - name: Start dev-metrics
+      command: podman-compose -f /opt/homelab/dev-services/dev-metrics/docker-compose.yml up -d
+      tags: dev-metrics
+
+    - name: Start dev-pages
+      command: podman-compose -f /opt/homelab/dev-services/dev-pages/docker-compose.yml up -d
+      tags: dev-pages
+
+    - name: Start dev-proxy
+      command: podman-compose -f /opt/homelab/dev-services/dev-proxy/docker-compose.yml up -d
+      tags: dev-proxy

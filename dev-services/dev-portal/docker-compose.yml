@@ -1,0 +1,49 @@
+services:
+  nginx-portal:
+    image: docker.io/nginx/nginx:latest
+    container_name: nginx-portal
+    restart: unless-stopped
+    volumes:
+      - ./nginx-portal/nginx.conf:/etc/nginx/nginx.conf
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "256M"
+        reservations:
+          cpus: "0.25"
+          memory: "64M"
+    networks:
+      homelab-net:
+        aliases:
+          - nginx-portal
+    ports:
+      - "8888:80"
+    depends_on:
+      - portal
+
+  portal:
+    image: ${PRIVATE_REGISTRY}/portal:latest
+    container_name: portal
+    restart: unless-stopped
+    volumes:
+      - portal-data:/app/data
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "512M"
+        reservations:
+          cpus: "0.25"
+          memory: "128M"
+    networks:
+      homelab-net:
+        aliases:
+          - portal
+
+volumes:
+  portal-data:
+  
+networks:
+  homelab-net:
+    external: true

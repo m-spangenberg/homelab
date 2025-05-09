@@ -1,5 +1,3 @@
-# API Gateway Pod (Krakend) Docker Compose File
-# Includes Krakend, Garage, RabbitMQ, and Valkey
 services:
   krakend:
     image: docker.io/devopsfaith/krakend:latest

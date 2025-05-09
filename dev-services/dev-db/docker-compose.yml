@@ -1,5 +1,3 @@
-# Database Pod (PostgreSQL) Docker Compose File
-# Includes PostgreSQL
 services:
   postgres:
     image: docker.io/postgres:latest
@@ -16,9 +14,6 @@ services:
       GITEA_DB_USER: ${GITEA_DB_USER}
       GITEA_DB_PASSWORD: ${GITEA_DB_PASSWORD}
       GITEA_DB_NAME: ${GITEA_DB_NAME}
-      WOODPECKER_DB_USER: ${WOODPECKER_DB_USER}
-      WOODPECKER_DB_PASSWORD: ${WOODPECKER_DB_PASSWORD}
-      WOODPECKER_DB_NAME: ${WOODPECKER_DB_NAME}
     deploy:
       resources:
         limits:

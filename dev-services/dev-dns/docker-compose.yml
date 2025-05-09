@@ -1,0 +1,31 @@
+services:
+  blocky:
+    image: ghcr.io/0xerr0r/blocky
+    container_name: blocky
+    restart: unless-stopped
+    hostname: blocky-hostname
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "512M"
+        reservations:
+          cpus: "0.25"
+          memory: "256M"
+    networks:
+      homelab-net:
+        aliases:
+          - blocky
+    ports:
+      - "53:53/tcp"       # DNS
+      - "53:53/udp"       # DNS
+      - "4000:4000/tcp"   # Prometheus stats (Optional)
+    environment:
+      - TZ=Africa/Windhoek
+    volumes:
+      - ./blocky/config.yml:/app/config.yml:ro
+      - /etc/localtime:/etc/localtime:ro
+
+networks:
+  homelab-net:
+    external: true

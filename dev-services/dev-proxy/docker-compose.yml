@@ -1,5 +1,3 @@
-# Cloudflared Pod (Cloudflared) Docker Compose File
-# Includes Cloudflared
 services:
   cloudflared:
     image: docker.io/cloudflare/cloudflared:latest

@@ -1,5 +1,3 @@
-# Forge Pod (Gitea) Docker Compose File
-# Includes Gitea and Gitea-Runner
 services:
   gitea:
     image: docker.io/gitea/gitea:latest-rootless
