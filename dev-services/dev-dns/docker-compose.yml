@@ -18,8 +18,8 @@ services:
           - blocky
     ports:
       - "53:53/tcp"       # DNS
-      - "53:53/udp"       # DNS
-      - "4000:4000/tcp"   # Prometheus stats (Optional)
+      - "53:53/udp"       # DNS 
+      # - "4000:4000/tcp"   # Prometheus stats (Optional)
     environment:
       - TZ=Africa/Windhoek
     volumes:
