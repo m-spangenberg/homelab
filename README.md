@@ -1,7 +1,6 @@
 # Homelab
 
-![Linting](https://img.shields.io/github/actions/workflow/status/m-spangenberg/homelab/lint.yml?branch=main&label=lint&style=flat-square)
-![Kubeconform](https://img.shields.io/github/actions/workflow/status/m-spangenberg/homelab/kube-validation.yml?branch=main&label=k8s-valid&style=flat-square&color=blue)
+![Linting](https://img.shields.io/github/actions/workflow/status/m-spangenberg/homelab/validate.yml?branch=main&label=lint&style=flat-square)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=flat-square&logo=postgresql&logoColor=white)
 ![Apache Kafka](https://img.shields.io/badge/Apache%20Kafka-000?style=flat-square&logo=apachekafka&logoColor=white)
 ![Cassandra](https://img.shields.io/badge/Cassandra-1287B1?style=flat-square&logo=apachecassandra&logoColor=white)
@@ -88,6 +87,7 @@ The overlay creates three ArgoCD projects and three layer applications so reconc
 
 - [docs/runbooks/node-replacement.md](/home/marthinus/Personal/homelab/docs/runbooks/node-replacement.md)
 - [docs/runbooks/recovery.md](/home/marthinus/Personal/homelab/docs/runbooks/recovery.md)
+- [docs/runbooks/sealed-secrets.md](/home/marthinus/Personal/homelab/docs/runbooks/sealed-secrets.md)
 
 ## Architecture
 
