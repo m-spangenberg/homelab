@@ -1,0 +1,127 @@
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: apps-db-bootstrap
+  namespace: data-platform
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  encryptedData:
+    strapi-password: AgReplaceWithKubesealCiphertext
+    gitea-password: AgReplaceWithKubesealCiphertext
+    n8n-password: AgReplaceWithKubesealCiphertext
+  template:
+    metadata:
+      name: apps-db-bootstrap
+      namespace: data-platform
+      annotations:
+        argocd.argoproj.io/sync-wave: "1"
+    type: Opaque
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: apps-db-bootstrap-script
+  namespace: data-platform
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+data:
+  bootstrap.sh: |
+    #!/bin/sh
+    set -eu
+
+    export PGPASSWORD="$POSTGRES_PASSWORD"
+    POSTGRES_HOST="app-postgres-rw.data-platform.svc.cluster.local"
+
+    role_exists() {
+      psql -h "$POSTGRES_HOST" -U "$POSTGRES_SUPERUSER" -d postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname = '$1'" | grep -q 1
+    }
+
+    db_exists() {
+      psql -h "$POSTGRES_HOST" -U "$POSTGRES_SUPERUSER" -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname = '$1'" | grep -q 1
+    }
+
+    ensure_role() {
+      role="$1"
+      password="$2"
+
+      if role_exists "$role"; then
+        psql -h "$POSTGRES_HOST" -U "$POSTGRES_SUPERUSER" -d postgres -c "ALTER ROLE \"$role\" WITH LOGIN PASSWORD '$password';"
+      else
+        psql -h "$POSTGRES_HOST" -U "$POSTGRES_SUPERUSER" -d postgres -c "CREATE ROLE \"$role\" WITH LOGIN PASSWORD '$password';"
+      fi
+    }
+
+    ensure_database() {
+      database="$1"
+      owner="$2"
+
+      if ! db_exists "$database"; then
+        psql -h "$POSTGRES_HOST" -U "$POSTGRES_SUPERUSER" -d postgres -c "CREATE DATABASE \"$database\" OWNER \"$owner\";"
+      fi
+
+      psql -h "$POSTGRES_HOST" -U "$POSTGRES_SUPERUSER" -d postgres -c "GRANT ALL PRIVILEGES ON DATABASE \"$database\" TO \"$owner\";"
+    }
+
+    ensure_role strapi "$STRAPI_PASSWORD"
+    ensure_database strapi strapi
+
+    ensure_role gitea "$GITEA_PASSWORD"
+    ensure_database gitea gitea
+
+    ensure_role n8n "$N8N_PASSWORD"
+    ensure_database n8n n8n
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: apps-db-bootstrap
+  namespace: data-platform
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: bootstrap
+          image: postgres:16-alpine
+          command:
+            - /bin/sh
+            - /scripts/bootstrap.sh
+          env:
+            - name: POSTGRES_SUPERUSER
+              valueFrom:
+                secretKeyRef:
+                  name: cnpg-superuser
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: cnpg-superuser
+                  key: password
+            - name: STRAPI_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: apps-db-bootstrap
+                  key: strapi-password
+            - name: GITEA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: apps-db-bootstrap
+                  key: gitea-password
+            - name: N8N_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: apps-db-bootstrap
+                  key: n8n-password
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+      volumes:
+        - name: scripts
+          configMap:
+            name: apps-db-bootstrap-script
+            defaultMode: 0755

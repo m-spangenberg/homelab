@@ -1,0 +1,76 @@
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: cassandra-auth
+  namespace: nosql
+spec:
+  encryptedData:
+    cassandra-password: AgReplaceWithKubesealCiphertext
+  template:
+    metadata:
+      name: cassandra-auth
+      namespace: nosql
+    type: Opaque
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: shared-cassandra
+  namespace: argocd
+spec:
+  project: shared-services
+  source:
+    repoURL: https://charts.bitnami.com/bitnami
+    chart: cassandra
+    targetRevision: 12.0.7
+    helm:
+      values: |
+        cluster:
+          name: homelab-cassandra
+          seedCount: 3
+        dbUser:
+          user: cassandra
+          existingSecret: cassandra-auth
+          existingSecretPasswordKey: cassandra-password
+        replicaCount: 3
+        persistence:
+          enabled: true
+          storageClass: longhorn-replicated
+          size: 100Gi
+        podAntiAffinityPreset: hard
+        pdb:
+          create: true
+          minAvailable: 2
+        resources:
+          requests:
+            cpu: 1
+            memory: 4Gi
+          limits:
+            cpu: 3
+            memory: 8Gi
+        metrics:
+          enabled: true
+        service:
+          type: ClusterIP
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: nosql
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 10
+    syncOptions:
+      - CreateNamespace=true
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: cassandra
+  namespace: nosql
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: cassandra

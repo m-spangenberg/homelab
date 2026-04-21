@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kube-vip
+  namespace: kube-system
+spec:
+  hostNetwork: true
+  hostAliases: []
+  containers:
+    - name: kube-vip
+      image: {{ kube_vip_image }}
+      imagePullPolicy: IfNotPresent
+      args:
+        - manager
+      env:
+        - name: address
+          value: {{ api_virtual_ip }}
+        - name: vip_interface
+          value: {{ api_virtual_ip_interface }}
+        - name: port
+          value: "{{ api_server_port }}"
+        - name: cp_enable
+          value: "true"
+        - name: cp_namespace
+          value: kube-system
+        - name: vip_arp
+          value: "true"
+        - name: svc_enable
+          value: "false"
+      securityContext:
+        capabilities:
+          add:
+            - NET_ADMIN
+            - NET_RAW
+            - SYS_TIME
+      volumeMounts:
+        - mountPath: /etc/kubernetes/admin.conf
+          name: kubeconfig
+  volumes:
+    - name: kubeconfig
+      hostPath:
+        path: /etc/kubernetes/admin.conf
+        type: FileOrCreate

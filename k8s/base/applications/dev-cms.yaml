@@ -1,0 +1,173 @@
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: strapi-config
+  namespace: apps-utility
+spec:
+  encryptedData:
+    DATABASE_HOST: AgReplaceWithKubesealCiphertext
+    DATABASE_PORT: AgReplaceWithKubesealCiphertext
+    DATABASE_NAME: AgReplaceWithKubesealCiphertext
+    DATABASE_USERNAME: AgReplaceWithKubesealCiphertext
+    DATABASE_PASSWORD: AgReplaceWithKubesealCiphertext
+    APP_KEYS: AgReplaceWithKubesealCiphertext
+    API_TOKEN_SALT: AgReplaceWithKubesealCiphertext
+    ADMIN_JWT_SECRET: AgReplaceWithKubesealCiphertext
+    TRANSFER_TOKEN_SALT: AgReplaceWithKubesealCiphertext
+    JWT_SECRET: AgReplaceWithKubesealCiphertext
+  template:
+    metadata:
+      name: strapi-config
+      namespace: apps-utility
+    type: Opaque
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: strapi-uploads
+  namespace: apps-utility
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn-replicated
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: strapi
+  namespace: apps-utility
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: strapi
+  template:
+    metadata:
+      labels:
+        app: strapi
+    spec:
+      containers:
+        - name: strapi
+          image: strapi/strapi:4.25.12
+          ports:
+            - containerPort: 1337
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: DATABASE_CLIENT
+              value: postgres
+            - name: DATABASE_SSL
+              value: "false"
+            - name: DATABASE_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: strapi-config
+                  key: DATABASE_HOST
+            - name: DATABASE_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: strapi-config
+                  key: DATABASE_PORT
+            - name: DATABASE_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: strapi-config
+                  key: DATABASE_NAME
+            - name: DATABASE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: strapi-config
+                  key: DATABASE_USERNAME
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: strapi-config
+                  key: DATABASE_PASSWORD
+            - name: APP_KEYS
+              valueFrom:
+                secretKeyRef:
+                  name: strapi-config
+                  key: APP_KEYS
+            - name: API_TOKEN_SALT
+              valueFrom:
+                secretKeyRef:
+                  name: strapi-config
+                  key: API_TOKEN_SALT
+            - name: ADMIN_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: strapi-config
+                  key: ADMIN_JWT_SECRET
+            - name: TRANSFER_TOKEN_SALT
+              valueFrom:
+                secretKeyRef:
+                  name: strapi-config
+                  key: TRANSFER_TOKEN_SALT
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: strapi-config
+                  key: JWT_SECRET
+          readinessProbe:
+            httpGet:
+              path: /_health
+              port: 1337
+          livenessProbe:
+            tcpSocket:
+              port: 1337
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1
+              memory: 2Gi
+          volumeMounts:
+            - name: uploads
+              mountPath: /opt/app/public/uploads
+      volumes:
+        - name: uploads
+          persistentVolumeClaim:
+            claimName: strapi-uploads
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: strapi
+  namespace: apps-utility
+spec:
+  selector:
+    app: strapi
+  ports:
+    - name: http
+      port: 80
+      targetPort: 1337
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: strapi
+  namespace: apps-utility
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+    traefik.ingress.kubernetes.io/router.middlewares: traefik-force-https@kubernetescrd,traefik-default-security-headers@kubernetescrd
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - cms.domain.tld
+      secretName: strapi-tls
+  rules:
+    - host: cms.domain.tld
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: strapi
+                port:
+                  number: 80

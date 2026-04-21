@@ -1,0 +1,34 @@
+apiVersion: kubeadm.k8s.io/v1beta4
+kind: InitConfiguration
+localAPIEndpoint:
+  advertiseAddress: {{ management_ip }}
+  bindPort: {{ api_server_port }}
+nodeRegistration:
+  kubeletExtraArgs:
+    node-ip: {{ management_ip }}
+---
+apiVersion: kubeadm.k8s.io/v1beta4
+kind: ClusterConfiguration
+clusterName: {{ cluster_name }}
+controlPlaneEndpoint: {{ control_plane_endpoint }}
+networking:
+  serviceSubnet: {{ service_subnet }}
+  podSubnet: {{ pod_subnet }}
+  dnsDomain: {{ cluster_domain }}
+apiServer:
+  certSANs:
+    - {{ api_virtual_ip }}
+{% for host in groups['kube_control_plane'] %}
+    - {{ hostvars[host].management_ip }}
+    - {{ host }}
+{% endfor %}
+controllerManager: {}
+scheduler: {}
+etcd:
+  local:
+    dataDir: /var/lib/etcd
+---
+apiVersion: kubelet.config.k8s.io/v1beta1
+kind: KubeletConfiguration
+cgroupDriver: systemd
+serverTLSBootstrap: true

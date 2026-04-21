@@ -1,0 +1,42 @@
+apiVersion: rabbitmq.com/v1beta1
+kind: RabbitmqCluster
+metadata:
+  name: homelab-rabbitmq
+  namespace: messaging
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+spec:
+  replicas: 3
+  persistence:
+    storageClassName: longhorn-replicated
+    storage: 10Gi
+  rabbitmq:
+    additionalConfig: |
+      cluster_partition_handling = autoheal
+      disk_free_limit.absolute = 2GB
+      vm_memory_high_watermark.relative = 0.6
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 1
+      memory: 1Gi
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: rabbitmq
+          topologyKey: kubernetes.io/hostname
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: homelab-rabbitmq
+  namespace: messaging
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: rabbitmq

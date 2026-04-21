@@ -1,2 +1,12 @@
-# environment variables and secrets
 .env
+.env.*
+*.kubeconfig
+*.pem
+*.key
+*.p12
+*.crt
+*.asc
+secrets/
+tmp/
+*.vault.yml
+*.vault.yaml

@@ -1,0 +1,98 @@
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: cnpg-app-user
+  namespace: data-platform
+spec:
+  encryptedData:
+    username: AgReplaceWithKubesealCiphertext
+    password: AgReplaceWithKubesealCiphertext
+  template:
+    metadata:
+      name: cnpg-app-user
+      namespace: data-platform
+    type: kubernetes.io/basic-auth
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: cnpg-superuser
+  namespace: data-platform
+spec:
+  encryptedData:
+    username: AgReplaceWithKubesealCiphertext
+    password: AgReplaceWithKubesealCiphertext
+  template:
+    metadata:
+      name: cnpg-superuser
+      namespace: data-platform
+    type: kubernetes.io/basic-auth
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: cnpg-backup-s3
+  namespace: data-platform
+spec:
+  encryptedData:
+    ACCESS_KEY_ID: AgReplaceWithKubesealCiphertext
+    ACCESS_SECRET_KEY: AgReplaceWithKubesealCiphertext
+  template:
+    metadata:
+      name: cnpg-backup-s3
+      namespace: data-platform
+    type: Opaque
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: app-postgres
+  namespace: data-platform
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+spec:
+  instances: 3
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.4
+  primaryUpdateStrategy: unsupervised
+  minSyncReplicas: 1
+  maxSyncReplicas: 1
+  superuserSecret:
+    name: cnpg-superuser
+  bootstrap:
+    initdb:
+      database: app
+      owner: app
+      secret:
+        name: cnpg-app-user
+  storage:
+    size: 20Gi
+    storageClass: longhorn-replicated
+  monitoring:
+    enablePodMonitor: true
+  backup:
+    barmanObjectStore:
+      destinationPath: s3://postgres@homelab-backups/dev
+      endpointURL: https://s3.example.invalid
+      s3Credentials:
+        accessKeyId:
+          name: cnpg-backup-s3
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: cnpg-backup-s3
+          key: ACCESS_SECRET_KEY
+      wal:
+        compression: gzip
+        maxParallel: 4
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: app-postgres-daily
+  namespace: data-platform
+  annotations:
+    argocd.argoproj.io/sync-wave: "21"
+spec:
+  schedule: "0 2 * * *"
+  backupOwnerReference: self
+  cluster:
+    name: app-postgres

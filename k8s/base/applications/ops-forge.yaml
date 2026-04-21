@@ -1,0 +1,186 @@
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: gitea-config
+  namespace: apps-utility
+spec:
+  encryptedData:
+    database-host: AgReplaceWithKubesealCiphertext
+    database-name: AgReplaceWithKubesealCiphertext
+    database-user: AgReplaceWithKubesealCiphertext
+    database-password: AgReplaceWithKubesealCiphertext
+  template:
+    metadata:
+      name: gitea-config
+      namespace: apps-utility
+    type: Opaque
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gitea-data
+  namespace: apps-utility
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: longhorn-replicated
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitea
+  namespace: apps-utility
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gitea
+  template:
+    metadata:
+      labels:
+        app: gitea
+    spec:
+      containers:
+        - name: gitea
+          image: gitea/gitea:1.22.6-rootless
+          ports:
+            - containerPort: 3000
+            - containerPort: 2222
+          env:
+            - name: USER_UID
+              value: "1000"
+            - name: USER_GID
+              value: "1000"
+            - name: GITEA__database__DB_TYPE
+              value: postgres
+            - name: GITEA__database__HOST
+              valueFrom:
+                secretKeyRef:
+                  name: gitea-config
+                  key: database-host
+            - name: GITEA__database__NAME
+              valueFrom:
+                secretKeyRef:
+                  name: gitea-config
+                  key: database-name
+            - name: GITEA__database__USER
+              valueFrom:
+                secretKeyRef:
+                  name: gitea-config
+                  key: database-user
+            - name: GITEA__database__PASSWD
+              valueFrom:
+                secretKeyRef:
+                  name: gitea-config
+                  key: database-password
+            - name: GITEA__server__ROOT_URL
+              value: https://forge.domain.tld/
+            - name: GITEA__server__DOMAIN
+              value: forge.domain.tld
+            - name: GITEA__server__SSH_DOMAIN
+              value: forge.domain.tld
+            - name: GITEA__server__START_SSH_SERVER
+              value: "true"
+            - name: GITEA__server__SSH_PORT
+              value: "22"
+            - name: GITEA__server__SSH_LISTEN_PORT
+              value: "2222"
+            - name: GITEA__service__DISABLE_REGISTRATION
+              value: "true"
+            - name: GITEA__security__INSTALL_LOCK
+              value: "true"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+          livenessProbe:
+            tcpSocket:
+              port: 3000
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 2
+              memory: 2Gi
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/gitea
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: gitea-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitea-web
+  namespace: apps-utility
+spec:
+  selector:
+    app: gitea
+  ports:
+    - name: http
+      port: 3000
+      targetPort: 3000
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gitea-ssh
+  namespace: apps-utility
+spec:
+  type: LoadBalancer
+  loadBalancerSourceRanges:
+    - 192.168.1.0/24
+  selector:
+    app: gitea
+  ports:
+    - name: ssh
+      port: 22
+      targetPort: 2222
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gitea-web
+  namespace: apps-utility
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+    traefik.ingress.kubernetes.io/router.middlewares: traefik-force-https@kubernetescrd,traefik-default-security-headers@kubernetescrd
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - forge.domain.tld
+      secretName: gitea-web-tls
+  rules:
+    - host: forge.domain.tld
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gitea-web
+                port:
+                  number: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: gitea-ssh
+  namespace: apps-utility
+spec:
+  podSelector:
+    matchLabels:
+      app: gitea
+  policyTypes:
+    - Ingress
+  ingress:
+    - ports:
+        - protocol: TCP
+          port: 2222

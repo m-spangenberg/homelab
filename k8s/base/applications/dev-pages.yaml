@@ -1,0 +1,333 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: page-site-content
+  namespace: apps-web
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Site</title>
+      <style>
+        body { font-family: sans-serif; margin: 0; min-height: 100vh; display: grid; place-items: center; background: linear-gradient(135deg, #d6f5e8, #e7eefc); color: #16334d; }
+        main { padding: 3rem; background: rgba(255,255,255,0.85); border-radius: 1rem; box-shadow: 0 1rem 2rem rgba(22,51,77,0.12); }
+      </style>
+    </head>
+    <body><main><h1>site.domain.tld</h1><p>GitOps-managed landing page.</p></main></body>
+    </html>
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: page-blog-content
+  namespace: apps-web
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Blog</title>
+      <style>
+        body { font-family: sans-serif; margin: 0; min-height: 100vh; display: grid; place-items: center; background: linear-gradient(135deg, #f7ead9, #f7f3e8); color: #5b3a1b; }
+        main { padding: 3rem; background: rgba(255,255,255,0.88); border-radius: 1rem; box-shadow: 0 1rem 2rem rgba(91,58,27,0.12); }
+      </style>
+    </head>
+    <body><main><h1>blog.domain.tld</h1><p>Stateless content migrated first to validate ingress and rollout flow.</p></main></body>
+    </html>
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: page-status-content
+  namespace: apps-web
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Status</title>
+      <style>
+        body { font-family: sans-serif; margin: 0; min-height: 100vh; display: grid; place-items: center; background: linear-gradient(135deg, #d8f1f7, #edf8f5); color: #0f4c5c; }
+        main { padding: 3rem; background: rgba(255,255,255,0.9); border-radius: 1rem; box-shadow: 0 1rem 2rem rgba(15,76,92,0.12); }
+      </style>
+    </head>
+    <body><main><h1>status.domain.tld</h1><p>User-facing validation endpoint for worker drains and node replacement.</p></main></body>
+    </html>
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: site-page
+  namespace: apps-web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: site-page
+  template:
+    metadata:
+      labels:
+        app: site-page
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: site-page
+                topologyKey: kubernetes.io/hostname
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+          volumeMounts:
+            - name: content
+              mountPath: /usr/share/nginx/html/index.html
+              subPath: index.html
+      volumes:
+        - name: content
+          configMap:
+            name: page-site-content
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blog-page
+  namespace: apps-web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: blog-page
+  template:
+    metadata:
+      labels:
+        app: blog-page
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: blog-page
+                topologyKey: kubernetes.io/hostname
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+          volumeMounts:
+            - name: content
+              mountPath: /usr/share/nginx/html/index.html
+              subPath: index.html
+      volumes:
+        - name: content
+          configMap:
+            name: page-blog-content
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: status-page
+  namespace: apps-web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: status-page
+  template:
+    metadata:
+      labels:
+        app: status-page
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app: status-page
+                topologyKey: kubernetes.io/hostname
+      containers:
+        - name: nginx
+          image: nginx:1.27-alpine
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+          volumeMounts:
+            - name: content
+              mountPath: /usr/share/nginx/html/index.html
+              subPath: index.html
+      volumes:
+        - name: content
+          configMap:
+            name: page-status-content
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: site-page
+  namespace: apps-web
+spec:
+  selector:
+    app: site-page
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: blog-page
+  namespace: apps-web
+spec:
+  selector:
+    app: blog-page
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: status-page
+  namespace: apps-web
+spec:
+  selector:
+    app: status-page
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pages
+  namespace: apps-web
+spec:
+  minAvailable: 1
+  selector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - site-page
+          - blog-page
+          - status-page
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: site-page
+  namespace: apps-web
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+    traefik.ingress.kubernetes.io/router.middlewares: traefik-force-https@kubernetescrd,traefik-default-security-headers@kubernetescrd
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - site.domain.tld
+      secretName: site-page-tls
+  rules:
+    - host: site.domain.tld
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: site-page
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: blog-page
+  namespace: apps-web
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+    traefik.ingress.kubernetes.io/router.middlewares: traefik-force-https@kubernetescrd,traefik-default-security-headers@kubernetescrd
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - blog.domain.tld
+      secretName: blog-page-tls
+  rules:
+    - host: blog.domain.tld
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: blog-page
+                port:
+                  number: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: status-page
+  namespace: apps-web
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+    traefik.ingress.kubernetes.io/router.middlewares: traefik-force-https@kubernetescrd,traefik-default-security-headers@kubernetescrd
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - status.domain.tld
+      secretName: status-page-tls
+  rules:
+    - host: status.domain.tld
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: status-page
+                port:
+                  number: 80

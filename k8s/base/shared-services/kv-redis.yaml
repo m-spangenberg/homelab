@@ -1,0 +1,62 @@
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: redis-auth
+  namespace: cache
+spec:
+  encryptedData:
+    redis-password: AgReplaceWithKubesealCiphertext
+  template:
+    metadata:
+      name: redis-auth
+      namespace: cache
+    type: Opaque
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: shared-redis
+  namespace: argocd
+spec:
+  project: shared-services
+  source:
+    repoURL: https://charts.bitnami.com/bitnami
+    chart: redis
+    targetRevision: 20.6.0
+    helm:
+      values: |
+        architecture: replication
+        auth:
+          existingSecret: redis-auth
+          existingSecretPasswordKey: redis-password
+        master:
+          persistence:
+            enabled: true
+            storageClass: longhorn-replicated
+            size: 8Gi
+          podDisruptionBudget:
+            create: true
+            minAvailable: 1
+        replica:
+          replicaCount: 3
+          persistence:
+            enabled: true
+            storageClass: longhorn-replicated
+            size: 8Gi
+          podAntiAffinityPreset: hard
+          podDisruptionBudget:
+            create: true
+            minAvailable: 2
+        sentinel:
+          enabled: true
+          masterSet: mymaster
+          quorum: 2
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cache
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

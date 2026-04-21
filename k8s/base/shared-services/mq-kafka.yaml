@@ -1,0 +1,115 @@
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: kafka-auth
+  namespace: streaming
+spec:
+  encryptedData:
+    client-passwords: AgReplaceWithKubesealCiphertext
+    inter-broker-password: AgReplaceWithKubesealCiphertext
+    controller-password: AgReplaceWithKubesealCiphertext
+    zookeeper-password: AgReplaceWithKubesealCiphertext
+  template:
+    metadata:
+      name: kafka-auth
+      namespace: streaming
+    type: Opaque
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: shared-kafka
+  namespace: argocd
+spec:
+  project: shared-services
+  source:
+    repoURL: https://charts.bitnami.com/bitnami
+    chart: kafka
+    targetRevision: 30.1.2
+    helm:
+      values: |
+        kraft:
+          enabled: true
+        zookeeper:
+          enabled: false
+        listeners:
+          client:
+            protocol: SASL_PLAINTEXT
+          controller:
+            protocol: SASL_PLAINTEXT
+          interbroker:
+            protocol: SASL_PLAINTEXT
+        sasl:
+          enabledMechanisms: PLAIN
+          interBrokerMechanism: PLAIN
+          controllerMechanism: PLAIN
+          existingSecret: kafka-auth
+        controller:
+          replicaCount: 3
+          persistence:
+            enabled: true
+            storageClass: longhorn-replicated
+            size: 20Gi
+          podAntiAffinityPreset: hard
+          pdb:
+            create: true
+            minAvailable: 2
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: 2
+              memory: 4Gi
+        broker:
+          replicaCount: 3
+          persistence:
+            enabled: true
+            storageClass: longhorn-replicated
+            size: 100Gi
+          podAntiAffinityPreset: hard
+          pdb:
+            create: true
+            minAvailable: 2
+          resources:
+            requests:
+              cpu: 500m
+              memory: 2Gi
+            limits:
+              cpu: 3
+              memory: 6Gi
+        provisioning:
+          enabled: true
+          numPartitions: 3
+          replicationFactor: 3
+          topics:
+            - name: homelab-events
+              partitions: 3
+              replicationFactor: 3
+        metrics:
+          kafka:
+            enabled: true
+          jmx:
+            enabled: true
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: streaming
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 10
+    syncOptions:
+      - CreateNamespace=true
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: kafka-brokers
+  namespace: streaming
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kafka

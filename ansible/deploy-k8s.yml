@@ -1,0 +1,25 @@
+---
+# Supported bootstrap entrypoint.
+# Usage: ansible-playbook -i playbooks/inventory ansible/deploy-k8s.yml
+
+- name: Bootstrap HA kubeadm control plane
+  hosts: kube_control_plane
+  become: true
+  serial: 1
+  any_errors_fatal: true
+  roles:
+    - role: ansible_kubeadm_bootstrap
+
+- name: Join worker nodes
+  hosts: kube_workers
+  become: true
+  any_errors_fatal: true
+  roles:
+    - role: ansible_kubeadm_bootstrap
+
+- name: Seed CNI and ArgoCD
+  hosts: "{{ groups['kube_control_plane'][0] }}"
+  become: true
+  gather_facts: false
+  roles:
+    - role: ansible_argocd_seed

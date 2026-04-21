@@ -1,11 +1,82 @@
-name: Validate Containers
+name: Validate Repository
+
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
 
 jobs:
-  validate-containers:
+  validate-yaml:
+    name: Validate YAML
     runs-on: ubuntu-latest
     steps:
-      - name: validate-step
-        run: echo "Hello World!"
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install yamllint
+        run: pip install yamllint==1.37.1
+
+      - name: Run yamllint
+        run: |
+          yamllint -c .yamllint.yml \
+            .github/workflows/validate.yml \
+            ansible/deploy-k8s.yml \
+            playbooks/inventory \
+            playbooks/maintenance.yml \
+            k8s/base \
+            k8s/overlays/dev
+
+  validate-ansible:
+    name: Validate Ansible
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Ansible
+        run: pip install ansible-core==2.17.11
+
+      - name: Syntax-check bootstrap playbook
+        run: ansible-playbook -i playbooks/inventory ansible/deploy-k8s.yml --syntax-check
+
+      - name: Syntax-check maintenance playbook
+        run: ansible-playbook -i playbooks/inventory playbooks/maintenance.yml --syntax-check
+
+  validate-gitops:
+    name: Validate GitOps Manifests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: v1.30.3
+
+      - name: Install kubeconform
+        run: |
+          curl --proto '=https' --tlsv1.2 -fsSL -o /tmp/kubeconform.tar.gz \
+            https://github.com/yannh/kubeconform/releases/download/v0.6.7/kubeconform-linux-amd64.tar.gz
+          tar -C /tmp -xzf /tmp/kubeconform.tar.gz kubeconform
+          sudo install /tmp/kubeconform /usr/local/bin/kubeconform
+
+      - name: Render dev overlay
+        run: kubectl kustomize k8s/overlays/dev > /tmp/rendered-dev.yaml
+
+      - name: Validate rendered manifests
+        run: kubeconform -summary -strict -ignore-missing-schemas /tmp/rendered-dev.yaml

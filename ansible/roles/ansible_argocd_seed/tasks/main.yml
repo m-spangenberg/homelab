@@ -1,0 +1,48 @@
+---
+- name: Install Calico CNI
+  command: >-
+    kubectl --kubeconfig /etc/kubernetes/admin.conf apply
+    -f https://raw.githubusercontent.com/projectcalico/calico/{{ calico_version }}/manifests/calico.yaml
+  changed_when: false
+
+- name: Wait for Calico node daemonset rollout
+  command: >-
+    kubectl --kubeconfig /etc/kubernetes/admin.conf -n kube-system
+    rollout status daemonset/calico-node --timeout=300s
+  changed_when: false
+
+- name: Ensure ArgoCD namespace exists
+  command: kubectl --kubeconfig /etc/kubernetes/admin.conf create namespace argocd --dry-run=client -o yaml | kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f -
+  changed_when: false
+
+- name: Install ArgoCD
+  command: >-
+    kubectl --kubeconfig /etc/kubernetes/admin.conf apply
+    -f https://raw.githubusercontent.com/argoproj/argo-cd/{{ argocd_version }}/manifests/install.yaml
+  changed_when: false
+
+- name: Wait for ArgoCD server deployment
+  command: >-
+    kubectl --kubeconfig /etc/kubernetes/admin.conf -n argocd
+    rollout status deployment/argocd-server --timeout=300s
+  changed_when: false
+
+- name: Render bootstrap project manifest
+  template:
+    src: bootstrap-project.yaml.j2
+    dest: /tmp/homelab-bootstrap-project.yaml
+    mode: '0600'
+
+- name: Apply bootstrap project
+  command: kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /tmp/homelab-bootstrap-project.yaml
+  changed_when: false
+
+- name: Render root application manifest
+  template:
+    src: root-application.yaml.j2
+    dest: /tmp/homelab-root-application.yaml
+    mode: '0600'
+
+- name: Apply root application
+  command: kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /tmp/homelab-root-application.yaml
+  changed_when: false

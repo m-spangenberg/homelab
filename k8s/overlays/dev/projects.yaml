@@ -1,0 +1,107 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: platform
+  namespace: argocd
+spec:
+  sourceRepos:
+    - https://github.com/m-spangenberg/homelab.git
+    - https://traefik.github.io/charts
+    - https://charts.jetstack.io
+    - https://metallb.github.io/metallb
+    - https://charts.longhorn.io
+    - https://cloudnative-pg.github.io/charts
+    - https://charts.bitnami.com/bitnami
+    - https://bitnami-labs.github.io/sealed-secrets
+  destinations:
+    - namespace: argocd
+      server: https://kubernetes.default.svc
+    - namespace: cert-manager
+      server: https://kubernetes.default.svc
+    - namespace: metallb-system
+      server: https://kubernetes.default.svc
+    - namespace: longhorn-system
+      server: https://kubernetes.default.svc
+    - namespace: traefik
+      server: https://kubernetes.default.svc
+    - namespace: operators
+      server: https://kubernetes.default.svc
+    - namespace: sealed-secrets
+      server: https://kubernetes.default.svc
+    - namespace: backup-system
+      server: https://kubernetes.default.svc
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: shared-services
+  namespace: argocd
+spec:
+  sourceRepos:
+    - https://github.com/m-spangenberg/homelab.git
+    - https://charts.bitnami.com/bitnami
+  destinations:
+    - namespace: argocd
+      server: https://kubernetes.default.svc
+    - namespace: data-platform
+      server: https://kubernetes.default.svc
+    - namespace: streaming
+      server: https://kubernetes.default.svc
+    - namespace: nosql
+      server: https://kubernetes.default.svc
+    - namespace: messaging
+      server: https://kubernetes.default.svc
+    - namespace: cache
+      server: https://kubernetes.default.svc
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  clusterResourceWhitelist:
+    - group: ''
+      kind: Namespace
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: applications
+  namespace: argocd
+spec:
+  sourceRepos:
+    - https://github.com/m-spangenberg/homelab.git
+  destinations:
+    - namespace: argocd
+      server: https://kubernetes.default.svc
+    - namespace: apps-web
+      server: https://kubernetes.default.svc
+    - namespace: apps-utility
+      server: https://kubernetes.default.svc
+    - namespace: data-platform
+      server: https://kubernetes.default.svc
+  namespaceResourceWhitelist:
+    - group: ''
+      kind: ConfigMap
+    - group: ''
+      kind: PersistentVolumeClaim
+    - group: bitnami.com
+      kind: SealedSecret
+    - group: ''
+      kind: Service
+    - group: apps
+      kind: Deployment
+    - group: batch
+      kind: Job
+    - group: networking.k8s.io
+      kind: Ingress
+    - group: networking.k8s.io
+      kind: NetworkPolicy
+    - group: policy
+      kind: PodDisruptionBudget
+  clusterResourceWhitelist:
+    - group: ''
+      kind: Namespace
