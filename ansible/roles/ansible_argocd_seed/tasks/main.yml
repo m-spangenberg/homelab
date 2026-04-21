@@ -31,7 +31,7 @@
   template:
     src: bootstrap-project.yaml.j2
     dest: /tmp/homelab-bootstrap-project.yaml
-    mode: '0600'
+    mode: "0600"
 
 - name: Apply bootstrap project
   command: kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /tmp/homelab-bootstrap-project.yaml
@@ -41,7 +41,7 @@
   template:
     src: root-application.yaml.j2
     dest: /tmp/homelab-root-application.yaml
-    mode: '0600'
+    mode: "0600"
 
 - name: Apply root application
   command: kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f /tmp/homelab-root-application.yaml

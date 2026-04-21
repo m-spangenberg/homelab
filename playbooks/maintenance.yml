@@ -13,7 +13,7 @@
       apt:
         update_cache: yes
       tags: update
-      
+
     - name: Upgrade all packages
       apt:
         upgrade: yes

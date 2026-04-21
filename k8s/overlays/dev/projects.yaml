@@ -31,11 +31,11 @@ spec:
     - namespace: backup-system
       server: https://kubernetes.default.svc
   namespaceResourceWhitelist:
-    - group: '*'
-      kind: '*'
+    - group: "*"
+      kind: "*"
   clusterResourceWhitelist:
-    - group: '*'
-      kind: '*'
+    - group: "*"
+      kind: "*"
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
@@ -60,10 +60,10 @@ spec:
     - namespace: cache
       server: https://kubernetes.default.svc
   namespaceResourceWhitelist:
-    - group: '*'
-      kind: '*'
+    - group: "*"
+      kind: "*"
   clusterResourceWhitelist:
-    - group: ''
+    - group: ""
       kind: Namespace
 ---
 apiVersion: argoproj.io/v1alpha1
@@ -84,13 +84,13 @@ spec:
     - namespace: data-platform
       server: https://kubernetes.default.svc
   namespaceResourceWhitelist:
-    - group: ''
+    - group: ""
       kind: ConfigMap
-    - group: ''
+    - group: ""
       kind: PersistentVolumeClaim
     - group: bitnami.com
       kind: SealedSecret
-    - group: ''
+    - group: ""
       kind: Service
     - group: apps
       kind: Deployment
@@ -103,5 +103,5 @@ spec:
     - group: policy
       kind: PodDisruptionBudget
   clusterResourceWhitelist:
-    - group: ''
+    - group: ""
       kind: Namespace
