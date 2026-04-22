@@ -36,6 +36,10 @@ The cluster gets bootstrapped through Ansible and then fully reconciled through 
 The cluster has three layers. The platform layer includes the CNI, load balancer, ingress controller, cert manager, and storage operator. The shared services layer includes databases and messaging systems used by multiple applications. The application layer includes user-facing workloads like the CMS, PocketBase, Gitea forge, n8n workflow automation, ntfy notification system, and a placeholder dev-pages nginx deployment.
 
 ```mermaid
+---
+config:
+  theme: 'forest'
+---
 graph TB
     subgraph K8s_Cluster ["Kubernetes Cluster (kubeadm)"]
         direction TB
@@ -77,13 +81,6 @@ graph TB
     CMS & PKT & FORGE & N8N --> Shared_Services
     Shared_Services & Apps --- LH
     LH --- LH_PVCs
-    
-    classDef platform fill:#f9f,stroke:#ccc,stroke-width:2px;
-    classDef storage fill:#ff9,stroke:#ccc,stroke-width:2px;
-    classDef apps fill:#bbf,stroke:#ccc,stroke-width:2px;
-    class MLB,TRA,CM platform;
-    class LH,LH_PVCs storage;
-    class CMS,PKT,FORGE,N8N,NTFY,DP apps;
 ```
 
 ## Inventory Model
