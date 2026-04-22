@@ -37,20 +37,6 @@ The cluster has three layers. The platform layer includes the CNI, load balancer
 
 ```mermaid
 graph TB
-    subgraph Users ["External/Home Network"]
-        User(["User/Browser"])
-    end
-
-    subgraph Hardware ["Heterogeneous Nodes (3x HA Nodes)"]
-        direction TB
-        subgraph VIP ["Virtual IP (kube-vip)"]
-            ControlPlaneAPI["Control Plane API"]
-        end
-        Node1["Node 01"]
-        Node2["Node 02"]
-        Node3["Node 03"]
-    end
-
     subgraph K8s_Cluster ["Kubernetes Cluster (kubeadm)"]
         direction TB
         
@@ -83,12 +69,6 @@ graph TB
         end
     end
 
-    subgraph GitOps_Flow ["GitOps & Management"]
-        GH["GitHub/Internal Forge"]
-        ARG["ArgoCD"]
-        ANS["Ansible Bootstrap"]
-    end
-
     %% Connections
     User -->|HTTPS| MLB
     MLB --> TRA
@@ -97,14 +77,10 @@ graph TB
     CMS & PKT & FORGE & N8N --> Shared_Services
     Shared_Services & Apps --- LH
     LH --- LH_PVCs
-
-    ANS -->|kubeadm init/join| Hardware
-    GH -->|Sync| ARG
-    ARG -->|Reconcile| K8s_Cluster
     
-    classDef platform fill:#f9f,stroke:#333,stroke-width:2px;
-    classDef storage fill:#ff9,stroke:#333,stroke-width:2px;
-    classDef apps fill:#bbf,stroke:#333,stroke-width:2px;
+    classDef platform fill:#f9f,stroke:#ccc,stroke-width:2px;
+    classDef storage fill:#ff9,stroke:#ccc,stroke-width:2px;
+    classDef apps fill:#bbf,stroke:#ccc,stroke-width:2px;
     class MLB,TRA,CM platform;
     class LH,LH_PVCs storage;
     class CMS,PKT,FORGE,N8N,NTFY,DP apps;
@@ -112,7 +88,7 @@ graph TB
 
 ## Inventory Model
 
-Inventory is defined in [playbooks/inventory](/home/marthinus/Personal/homelab/playbooks/inventory).
+Inventory is defined in [playbooks/inventory](playbooks/inventory)
 
 Each host declares:
 
@@ -145,11 +121,11 @@ ansible-playbook -i playbooks/inventory ansible/deploy-k8s.yml
 
 ## GitOps Layout
 
-The GitOps entrypoint is [k8s/overlays/dev](/home/marthinus/Personal/homelab/k8s/overlays/dev).
+The GitOps entrypoint is [k8s/overlays/dev](k8s/overlays/dev).
 
-- [k8s/base/platform](/home/marthinus/Personal/homelab/k8s/base/platform): ingress, certs, load balancing, storage, operators, RBAC, and baseline platform defaults
-- [k8s/base/shared-services](/home/marthinus/Personal/homelab/k8s/base/shared-services): PostgreSQL, RabbitMQ, Redis, Kafka, and Cassandra managed through maintained charts and operators
-- [k8s/base/applications](/home/marthinus/Personal/homelab/k8s/base/applications): migrated user-facing workloads, currently `dev-pages`, `srv-ntfy`, `dev-cms`, `dev-pocket`, `ops-forge`, and `srv-n8n`
+- [k8s/base/platform](k8s/base/platform): ingress, certs, load balancing, storage, operators, RBAC, and baseline platform defaults
+- [k8s/base/shared-services](k8s/base/shared-services): PostgreSQL, RabbitMQ, Redis, Kafka, and Cassandra managed through maintained charts and operators
+- [k8s/base/applications](k8s/base/applications): migrated user-facing workloads, currently `dev-pages`, `srv-ntfy`, `dev-cms`, `dev-pocket`, `ops-forge`, and `srv-n8n`
 
 The overlay creates three ArgoCD projects and three layer applications so reconciliation order is explicit.
 
@@ -166,6 +142,6 @@ The overlay creates three ArgoCD projects and three layer applications so reconc
 
 Common tasks are documented in these runbooks:
 
-- [docs/runbooks/node-replacement.md](/home/marthinus/Personal/homelab/docs/runbooks/node-replacement.md)
-- [docs/runbooks/recovery.md](/home/marthinus/Personal/homelab/docs/runbooks/recovery.md)
-- [docs/runbooks/sealed-secrets.md](/home/marthinus/Personal/homelab/docs/runbooks/sealed-secrets.md)
+- [docs/runbooks/node-replacement.md](docs/runbooks/node-replacement.md)
+- [docs/runbooks/recovery.md](docs/runbooks/recovery.md)
+- [docs/runbooks/sealed-secrets.md](docs/runbooks/sealed-secrets.md)
